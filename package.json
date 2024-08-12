@@ -1,0 +1,20 @@
+{
+  "name": "farcasterframes-server",
+  "module": "index.ts",
+  "type": "module",
+  "devDependencies": {
+    "@types/bun": "latest",
+    "@types/express": "^4.17.21"
+  },
+  "peerDependencies": {
+    "typescript": "^5.0.0"
+  },
+  "dependencies": {
+    "@farcaster/core": "^0.14.15",
+    "@noble/ed25519": "^2.1.0",
+    "@noble/hashes": "^1.4.0",
+    "express": "^4.19.2",
+    "viem": "^2.15.1",
+    "pinata-fdk": "^3.10.2"
+  }
+}
