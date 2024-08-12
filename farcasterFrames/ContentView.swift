@@ -1,61 +1,80 @@
-//
-//  ContentView.swift
-//  farcasterFrames
-//
-//  Created by Jerry Feng on 6/19/24.
-//
-
 import SwiftUI
 import SwiftData
 
 struct ContentView: View {
-    @Environment(\.modelContext) private var modelContext
-    @Query private var items: [Item]
-
+    @State public var casts: [Cast] = []
+    
+    func loadCasts() {
+        CastManager.shared.fetchCasts() { result in
+            switch result {
+            case .success(let casts):
+                self.casts = casts
+            case .failure(let error):
+                // Handle error
+                print("Failed to fetch casts: \(error)")
+            }
+        }
+    }
+    
     var body: some View {
-        NavigationSplitView {
-            List {
-                ForEach(items) { item in
-                    NavigationLink {
-                        Text("Item at \(item.timestamp, format: Date.FormatStyle(date: .numeric, time: .standard))")
-                    } label: {
-                        Text(item.timestamp, format: Date.FormatStyle(date: .numeric, time: .standard))
+        NavigationStack {
+            VStack {
+                HStack {
+                    Spacer()
+                    NavigationLink(destination: AccountView()) {
+                       Image(systemName: "person.crop.circle.fill")
+                       .resizable()
+                       .aspectRatio(contentMode: .fit)
+                       .frame(width: 30, height: 30)
+                       .clipShape(Circle())
+                       .padding()
+                       .foregroundColor(.black)
                     }
                 }
-                .onDelete(perform: deleteItems)
-            }
-            .toolbar {
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    EditButton()
-                }
-                ToolbarItem {
-                    Button(action: addItem) {
-                        Label("Add Item", systemImage: "plus")
+                ScrollView(.vertical) {
+                    ForEach(casts, id: \.id) { cast in
+                        LazyVStack(spacing: 0) {
+                            HStack {
+                                AsyncImage(url: URL(string:cast.pfpUrl))
+                                    .frame(width:40, height:40)
+                                    .clipShape(Circle())
+                                Text("@\(cast.username)")
+                                Spacer()
+                            }
+                            Text(cast.castText)
+                        }
+                        .padding(.top)
+                        
                     }
                 }
+                Spacer()
             }
-        } detail: {
-            Text("Select an item")
-        }
-    }
-
-    private func addItem() {
-        withAnimation {
-            let newItem = Item(timestamp: Date())
-            modelContext.insert(newItem)
-        }
-    }
-
-    private func deleteItems(offsets: IndexSet) {
-        withAnimation {
-            for index in offsets {
-                modelContext.delete(items[index])
+            .padding()
+            .onAppear {
+                loadCasts()
             }
+            .overlay(
+                GeometryReader { geometry in
+                    Button(action: {
+                        //  Open cast form
+                    }) {
+                        NavigationLink(destination: CastCreationView()) {
+                          Image(systemName: "plus")
+                          .resizable()
+                          .aspectRatio(contentMode: .fit)
+                          .frame(width: 30, height: 30)
+                          .clipShape(Circle())
+                          .foregroundColor(Color.black)
+                          .padding()
+                        }
+                    }
+                    .frame(width: geometry.size.width - 25, height: geometry.size.height - 25, alignment: .bottomTrailing)
+                }
+            )
         }
     }
 }
 
 #Preview {
     ContentView()
-        .modelContainer(for: Item.self, inMemory: true)
 }
